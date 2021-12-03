@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using ProtoBuf.Grpc.Client;
-using Service.BonusReferrerStatistic.Client;
-using Service.BonusReferrerStatistic.Grpc.Models;
 
 namespace TestApp
 {
@@ -15,12 +13,12 @@ namespace TestApp
             Console.Write("Press enter to start");
             Console.ReadLine();
 
-
-            var factory = new BonusReferrerStatisticClientFactory("http://localhost:5001");
-            var client = factory.GetHelloService();
-
-            var resp = await  client.SayHelloAsync(new HelloRequest(){Name = "Alex"});
-            Console.WriteLine(resp?.Message);
+            //
+            // var factory = new BonusReferrerStatisticClientFactory("http://localhost:5001");
+            // var client = factory.GetHelloService();
+            //
+            // var resp = await  client.GetReferrerStats(new GetStatRequest(){Name = "Alex"});
+            // Console.WriteLine(resp?.Message);
 
             Console.WriteLine("End");
             Console.ReadLine();

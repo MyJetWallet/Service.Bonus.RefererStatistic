@@ -5,9 +5,9 @@ using Service.BonusReferrerStatistic.Grpc.Models;
 namespace Service.BonusReferrerStatistic.Grpc
 {
     [ServiceContract]
-    public interface IHelloService
+    public interface IReferrerStatService
     {
         [OperationContract]
-        Task<HelloMessage> SayHelloAsync(HelloRequest request);
+        Task<ReferrerStatResponse> GetReferrerStats(GetStatRequest request);
     }
 }
