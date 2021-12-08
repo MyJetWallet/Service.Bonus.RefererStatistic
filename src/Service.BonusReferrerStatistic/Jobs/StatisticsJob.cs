@@ -54,6 +54,9 @@ namespace Service.BonusReferrerStatistic.Jobs
         
         private async ValueTask HandleRewards(ExecuteRewardMessage message)
         {
+            if(string.IsNullOrEmpty(message.ClientId))
+                return;
+
             if (message.RewardType == RewardType.ReferrerPaymentAbsolute.ToString())
             {
                 var profile = await GetOrClientProfile(message.ClientId);
