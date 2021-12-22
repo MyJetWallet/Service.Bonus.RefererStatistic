@@ -10,11 +10,13 @@ namespace Service.BonusReferrerStatistic.Client
     {
         private readonly IReferrerStatService _grpcService;
         private readonly MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> _reader;
+        private readonly MyNoSqlReadRepository<ReferrerStatSettingsNoSqlEntity> _settingsReader;
 
-        public NoSqlReferrerClient(IReferrerStatService grpcService, MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> reader)
+        public NoSqlReferrerClient(IReferrerStatService grpcService, MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> reader, MyNoSqlReadRepository<ReferrerStatSettingsNoSqlEntity> settingsReader)
         {
             _grpcService = grpcService;
             _reader = reader;
+            _settingsReader = settingsReader;
         }
 
         public async Task<ReferrerStatResponse> GetReferrerStats(GetStatRequest request)
@@ -22,6 +24,7 @@ namespace Service.BonusReferrerStatistic.Client
            var entity = _reader.Get(ReferrerProfileNoSqlEntity.GeneratePartitionKey(),
                 ReferrerProfileNoSqlEntity.GenerateRowKey(request.ClientId));
 
+           var settings = _settingsReader.Get(ReferrerStatSettingsNoSqlEntity.GeneratePartitionKey(),ReferrerStatSettingsNoSqlEntity.GenerateRowKey());
            if (entity != null)
                return new ReferrerStatResponse
                {
@@ -29,7 +32,8 @@ namespace Service.BonusReferrerStatistic.Client
                    ReferralActivated = entity.ReferrerProfile.ReferralActivated,
                    BonusEarned = entity.ReferrerProfile.BonusEarned,
                    CommissionEarned = entity.ReferrerProfile.CommissionEarned,
-                   Total = entity.ReferrerProfile.BonusEarned + entity.ReferrerProfile.CommissionEarned
+                   Total = entity.ReferrerProfile.BonusEarned + entity.ReferrerProfile.CommissionEarned,
+                   Weight = settings?.BannerWeight ?? 0
                };
            
            return await _grpcService.GetReferrerStats(request);

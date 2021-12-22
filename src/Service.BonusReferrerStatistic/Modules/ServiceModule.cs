@@ -34,6 +34,9 @@ namespace Service.BonusReferrerStatistic.Modules
             builder.RegisterMyNoSqlWriter<ReferrerProfileNoSqlEntity>(Program.ReloadedSettings(t => t.MyNoSqlWriterUrl),
                 ReferrerProfileNoSqlEntity.TableName);
 
+            builder.RegisterMyNoSqlReader<ReferrerStatSettingsNoSqlEntity>(myNoSqlClient,
+                ReferrerStatSettingsNoSqlEntity.TableName);
+
             builder.RegisterType<StatisticsJob>().AsSelf().SingleInstance().AutoActivate();
         }
     }

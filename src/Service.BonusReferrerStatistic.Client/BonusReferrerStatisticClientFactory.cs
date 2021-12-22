@@ -10,15 +10,17 @@ namespace Service.BonusReferrerStatistic.Client
     public class BonusReferrerStatisticClientFactory: MyGrpcClientFactory
     {
         private readonly MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> _reader;
+        private readonly MyNoSqlReadRepository<ReferrerStatSettingsNoSqlEntity> _settingsReader;
 
-        public BonusReferrerStatisticClientFactory(string grpcServiceUrl, MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> reader) : base(grpcServiceUrl)
+        public BonusReferrerStatisticClientFactory(string grpcServiceUrl, MyNoSqlReadRepository<ReferrerProfileNoSqlEntity> reader, MyNoSqlReadRepository<ReferrerStatSettingsNoSqlEntity> settingsReader) : base(grpcServiceUrl)
         {
             _reader = reader;
+            _settingsReader = settingsReader;
         }
 
         public IReferrerStatService GetReferralService()  => 
-            _reader != null  
-                ? new NoSqlReferrerClient(CreateGrpcService<IReferrerStatService>(), _reader) 
+            _reader != null && _settingsReader != null
+                ? new NoSqlReferrerClient(CreateGrpcService<IReferrerStatService>(), _reader, _settingsReader) 
                 : CreateGrpcService<IReferrerStatService>();
     }
 }

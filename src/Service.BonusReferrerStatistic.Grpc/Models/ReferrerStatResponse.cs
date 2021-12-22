@@ -10,5 +10,6 @@ namespace Service.BonusReferrerStatistic.Grpc.Models
         [DataMember(Order = 3)]public decimal BonusEarned { get; set; }
         [DataMember(Order = 4)]public decimal CommissionEarned { get; set; }
         [DataMember(Order = 5)]public decimal Total { get; set; }
+        [DataMember(Order = 6)]public int Weight { get; set; }
     }
 }

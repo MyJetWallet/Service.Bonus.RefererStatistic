@@ -12,7 +12,7 @@ namespace Service.BonusReferrerStatistic.Client
     {
         public static void RegisterBonusReferrerStatisticClientWithoutCache(this ContainerBuilder builder, string grpcServiceUrl)
         {
-            var factory = new BonusReferrerStatisticClientFactory(grpcServiceUrl, null);
+            var factory = new BonusReferrerStatisticClientFactory(grpcServiceUrl, null, null);
 
             builder.RegisterInstance(factory.GetReferralService()).As<IReferrerStatService>().SingleInstance();
         }
@@ -20,12 +20,18 @@ namespace Service.BonusReferrerStatistic.Client
         public static void RegisterBonusReferrerStatisticClient(this ContainerBuilder builder, string grpcServiceUrl, IMyNoSqlSubscriber myNoSqlSubscriber)
         {
             var subs = new MyNoSqlReadRepository<ReferrerProfileNoSqlEntity>(myNoSqlSubscriber, ReferrerProfileNoSqlEntity.TableName);
+            var settingsSubs = new MyNoSqlReadRepository<ReferrerStatSettingsNoSqlEntity>(myNoSqlSubscriber, ReferrerStatSettingsNoSqlEntity.TableName);
 
-            var factory = new BonusReferrerStatisticClientFactory(grpcServiceUrl, subs);
+            var factory = new BonusReferrerStatisticClientFactory(grpcServiceUrl, subs, settingsSubs);
 
             builder
                 .RegisterInstance(subs)
                 .As<IMyNoSqlServerDataReader<ReferrerProfileNoSqlEntity>>()
+                .SingleInstance();
+            
+            builder
+                .RegisterInstance(settingsSubs)
+                .As<IMyNoSqlServerDataReader<ReferrerStatSettingsNoSqlEntity>>()
                 .SingleInstance();
             
             builder
