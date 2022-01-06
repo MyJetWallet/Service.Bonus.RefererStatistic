@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using MyNoSqlServer.DataReader;
 using Service.BonusReferrerStatistic.Domain.Models.NoSql;
@@ -30,9 +31,9 @@ namespace Service.BonusReferrerStatistic.Client
                {
                    ReferralInvited = entity.ReferrerProfile.ReferralInvited,
                    ReferralActivated = entity.ReferrerProfile.ReferralActivated,
-                   BonusEarned = entity.ReferrerProfile.BonusEarned,
-                   CommissionEarned = entity.ReferrerProfile.CommissionEarned,
-                   Total = entity.ReferrerProfile.BonusEarned + entity.ReferrerProfile.CommissionEarned,
+                   BonusEarned = Math.Round(entity.ReferrerProfile.BonusEarned, 2),
+                   CommissionEarned = Math.Round(entity.ReferrerProfile.CommissionEarned, 2),
+                   Total = Math.Round(entity.ReferrerProfile.BonusEarned + entity.ReferrerProfile.CommissionEarned, 2),
                    Weight = settings?.BannerWeight ?? 0
                };
            

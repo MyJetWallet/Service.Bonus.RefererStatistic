@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MyNoSqlServer.Abstractions;
@@ -42,9 +43,9 @@ namespace Service.BonusReferrerStatistic.Services
             {
                 ReferralInvited = profile.ReferralInvited,
                 ReferralActivated = profile.ReferralActivated,
-                BonusEarned = profile.BonusEarned,
-                CommissionEarned = profile.CommissionEarned,
-                Total = profile.BonusEarned + profile.CommissionEarned,
+                BonusEarned = Math.Round(profile.BonusEarned, 2),
+                CommissionEarned = Math.Round(profile.CommissionEarned, 2),
+                Total = Math.Round(profile.BonusEarned + profile.CommissionEarned, 2),
                 Weight = settings?.BannerWeight ?? 0
             };
         }
