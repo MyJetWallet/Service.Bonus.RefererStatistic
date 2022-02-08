@@ -4,6 +4,7 @@ using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
 using Service.BonusReferrerStatistic.Domain.Models.NoSql;
 using Service.BonusReferrerStatistic.Jobs;
+using Service.BonusReferrerStatistic.Services;
 using Service.BonusRewards.Domain.Models;
 using Service.ClientProfile.Client;
 using Service.ClientProfile.Domain.Models;
@@ -33,11 +34,14 @@ namespace Service.BonusReferrerStatistic.Modules
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
             builder.RegisterMyNoSqlWriter<ReferrerProfileNoSqlEntity>(Program.ReloadedSettings(t => t.MyNoSqlWriterUrl),
                 ReferrerProfileNoSqlEntity.TableName);
-
+            builder.RegisterMyNoSqlWriter<MessageRecordsNoSqlEntity>(Program.ReloadedSettings(t => t.MyNoSqlWriterUrl),
+                MessageRecordsNoSqlEntity.TableName);
+            
             builder.RegisterMyNoSqlReader<ReferrerStatSettingsNoSqlEntity>(myNoSqlClient,
                 ReferrerStatSettingsNoSqlEntity.TableName);
 
             builder.RegisterType<StatisticsJob>().AsSelf().SingleInstance().AutoActivate();
+            builder.RegisterType<MessageRecordsRegistry>().AsSelf().SingleInstance().AutoActivate();
         }
     }
 }
