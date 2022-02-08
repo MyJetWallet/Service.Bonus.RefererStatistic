@@ -22,14 +22,12 @@ namespace Service.BonusReferrerStatistic.Jobs
         private readonly IClientProfileService _clientProfileClient;
         private readonly DbContextOptionsBuilder<DatabaseContext> _dbContextOptionsBuilder;
         private readonly IMyNoSqlServerDataWriter<ReferrerProfileNoSqlEntity> _dataWriter;
-        private readonly MessageRecordsRegistry _registry;
-        public StatisticsJob(ISubscriber<ClientProfileUpdateMessage> clientProfileSubscriber, ISubscriber<FeePaymentEntity> feePaymentSubscriber, ISubscriber<ExecuteRewardMessage> rewardSubscriber, IConvertIndexPricesClient convertIndexPrices, IClientProfileService clientProfileClient, DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, IMyNoSqlServerDataWriter<ReferrerProfileNoSqlEntity> dataWriter, MessageRecordsRegistry registry)
+        public StatisticsJob(ISubscriber<ClientProfileUpdateMessage> clientProfileSubscriber, ISubscriber<FeePaymentEntity> feePaymentSubscriber, ISubscriber<ExecuteRewardMessage> rewardSubscriber, IConvertIndexPricesClient convertIndexPrices, IClientProfileService clientProfileClient, DbContextOptionsBuilder<DatabaseContext> dbContextOptionsBuilder, IMyNoSqlServerDataWriter<ReferrerProfileNoSqlEntity> dataWriter)
         {
             _convertIndexPrices = convertIndexPrices;
             _clientProfileClient = clientProfileClient;
             _dbContextOptionsBuilder = dbContextOptionsBuilder;
             _dataWriter = dataWriter;
-            _registry = registry;
             clientProfileSubscriber.Subscribe(HandleProfileUpdates);
             feePaymentSubscriber.Subscribe(HandleFeePayments);
             rewardSubscriber.Subscribe(HandleRewards);
@@ -40,36 +38,23 @@ namespace Service.BonusReferrerStatistic.Jobs
             if (string.IsNullOrWhiteSpace(message.OldProfile.ReferrerClientId) &&
                 !string.IsNullOrWhiteSpace(message.NewProfile.ReferrerClientId))
             {
-                var messageId = $"{message.NewProfile.ClientId}_{message.NewProfile.ReferrerClientId}";
-                if(await _registry.IsHandled(messageId))
-                    return;
-                
                 var profile = await GetOrClientProfile(message.NewProfile.ReferrerClientId);
                 profile.ReferralInvited += 1;
                 await SaveProfile(profile);
-                
-                await _registry.AddMessage(messageId);
             }
         }
 
         private async ValueTask HandleFeePayments(FeePaymentEntity message)
         {
-            if(await _registry.IsHandled(message.PaymentOperationId))
-                return;
-            
             var profile = await GetOrClientProfile(message.ReferrerClientId);
             var price = _convertIndexPrices.GetConvertIndexPriceByPairAsync(message.AssetId, "USD"); //TODO: select asset?
             profile.CommissionEarned += (message.Amount * price.Price);
             await SaveProfile(profile);
-            await _registry.AddMessage(message.PaymentOperationId);
         }
         
         private async ValueTask HandleRewards(ExecuteRewardMessage message)
         {
             if(string.IsNullOrEmpty(message.ClientId))
-                return;
-            
-            if(await _registry.IsHandled(message.RewardId))
                 return;
 
             if (message.RewardType == RewardType.ReferrerPaymentAbsolute.ToString())
@@ -88,8 +73,6 @@ namespace Service.BonusReferrerStatistic.Jobs
                 profile.ReferralActivated += 1;
                 await SaveProfile(profile);
             }
-            
-            await _registry.AddMessage(message.RewardId);
         }
 
         private async Task<ReferrerProfile> GetOrClientProfile(string clientId)

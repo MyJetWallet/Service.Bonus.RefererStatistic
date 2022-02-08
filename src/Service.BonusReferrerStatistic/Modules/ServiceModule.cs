@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using MyJetWallet.Sdk.NoSql;
 using MyJetWallet.Sdk.ServiceBus;
 using MyServiceBus.Abstractions;
@@ -22,12 +23,40 @@ namespace Service.BonusReferrerStatistic.Modules
                     Program.LogFactory);
 
             var queueName = "BonusReferrerStatistics";
+
+            var profileDeduplicator =
+                builder.RegisterMyServiceBusDeduplicator<ClientProfileUpdateMessage>(
+                    t => t.Timestamp.ToString(),
+                    Program.ReloadedSettings(t=>t.MyNoSqlWriterUrl),
+                    queueName,
+                    ClientProfileUpdateMessage.TopicName,
+                    TimeSpan.FromHours(4),
+                    Program.LogFactory);
+            
+            var feePaymentDeduplicator =
+                builder.RegisterMyServiceBusDeduplicator<FeePaymentEntity>(
+                    t => t.PaymentOperationId,
+                    Program.ReloadedSettings(t=>t.MyNoSqlWriterUrl),
+                    queueName,
+                    FeePaymentEntity.TopicName,
+                    TimeSpan.FromHours(4),
+                    Program.LogFactory);
+            
+            var rewardDeduplicator =
+                builder.RegisterMyServiceBusDeduplicator<ExecuteRewardMessage>(
+                    t => t.RewardId,
+                    Program.ReloadedSettings(t=>t.MyNoSqlWriterUrl),
+                    queueName,
+                    ExecuteRewardMessage.TopicName,
+                    TimeSpan.FromHours(4),
+                    Program.LogFactory);
+            
             builder.RegisterMyServiceBusSubscriberSingle<ClientProfileUpdateMessage>(serviceBusClient,
-                ClientProfileUpdateMessage.TopicName, queueName, TopicQueueType.PermanentWithSingleConnection);
+                ClientProfileUpdateMessage.TopicName, queueName, TopicQueueType.PermanentWithSingleConnection, profileDeduplicator);
             builder.RegisterMyServiceBusSubscriberSingle<FeePaymentEntity>(serviceBusClient, FeePaymentEntity.TopicName,
-                queueName, TopicQueueType.PermanentWithSingleConnection);
+                queueName, TopicQueueType.PermanentWithSingleConnection,feePaymentDeduplicator);
             builder.RegisterMyServiceBusSubscriberSingle<ExecuteRewardMessage>(serviceBusClient,
-                ExecuteRewardMessage.TopicName, queueName, TopicQueueType.PermanentWithSingleConnection);
+                ExecuteRewardMessage.TopicName, queueName, TopicQueueType.PermanentWithSingleConnection, rewardDeduplicator);
 
             var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(t => t.MyNoSqlReaderHostPort));
             builder.RegisterClientProfileClients(myNoSqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
@@ -41,7 +70,6 @@ namespace Service.BonusReferrerStatistic.Modules
                 ReferrerStatSettingsNoSqlEntity.TableName);
 
             builder.RegisterType<StatisticsJob>().AsSelf().SingleInstance().AutoActivate();
-            builder.RegisterType<MessageRecordsRegistry>().AsSelf().SingleInstance().AutoActivate();
         }
     }
 }
