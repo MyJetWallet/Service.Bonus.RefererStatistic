@@ -58,7 +58,7 @@ namespace Service.BonusReferrerStatistic.Modules
             builder.RegisterMyServiceBusSubscriberSingle<ExecuteRewardMessage>(serviceBusClient,
                 ExecuteRewardMessage.TopicName, queueName, TopicQueueType.PermanentWithSingleConnection, rewardDeduplicator);
 
-            var myNoSqlClient = builder.CreateNoSqlClient(Program.ReloadedSettings(t => t.MyNoSqlReaderHostPort));
+            var myNoSqlClient = builder.CreateNoSqlClient(Program.Settings.MyNoSqlReaderHostPort, Program.LogFactory);
             builder.RegisterClientProfileClients(myNoSqlClient, Program.Settings.ClientProfileGrpcServiceUrl);
             builder.RegisterConvertIndexPricesClient(myNoSqlClient);
             builder.RegisterMyNoSqlWriter<ReferrerProfileNoSqlEntity>(Program.ReloadedSettings(t => t.MyNoSqlWriterUrl),
